@@ -1,0 +1,38 @@
+{% extends 'meetings/base.html' %}
+
+{% block title %}Delete Meeting - TeamPulse AI{% endblock %}
+
+{% block content %}
+<div class="text-center" style="max-width: 600px; margin: 0 auto; padding: 60px 20px;">
+    <div style="font-size: 4rem; margin-bottom: 20px;">⚠️</div>
+    
+    <h2 class="mb-4" style="color: var(--text-primary);">Delete Meeting?</h2>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">{{ meeting.title }}</h5>
+            <p class="text-muted mb-2">
+                <small>📅 {{ meeting.date|date:"M j, Y • g:i A" }}</small>
+            </p>
+            <div class="d-flex gap-2 justify-content-center mb-3">
+                <span class="badge bg-secondary">{{ meeting.total_messages }} messages</span>
+                <span class="badge bg-secondary">{{ meeting.total_words }} words</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="alert alert-danger mb-4">
+        <strong>⚠️ Warning:</strong> This action cannot be undone. All meeting data, messages, and analytics will be permanently deleted.
+    </div>
+    
+    <form method="post" class="d-flex gap-3 justify-content-center">
+        {% csrf_token %}
+        <a href="{% url 'meeting_list' %}" class="btn btn-outline-secondary btn-lg">
+            Cancel
+        </a>
+        <button type="submit" class="btn btn-danger btn-lg">
+            Delete Meeting
+        </button>
+    </form>
+</div>
+{% endblock %}

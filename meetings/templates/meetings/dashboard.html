@@ -1,0 +1,241 @@
+{% extends 'meetings/base.html' %}
+
+{% block title %}{{ meeting.title }} - Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="page-header mb-2">{{ meeting.title }}</h1>
+        <p class="text-muted">
+            📅 {{ meeting.date|date:"F j, Y \a\t g:i A" }}
+            {% if meeting.duration_minutes %}
+                | ⏱ {{ meeting.duration_minutes }} minutes
+            {% endif %}
+        </p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+        <span class="sentiment-badge sentiment-{{ meeting.sentiment_label }}">
+            {% if meeting.sentiment_label == 'positive' %}😊{% elif meeting.sentiment_label == 'negative' %}😟{% else %}😐{% endif %}
+            {{ meeting.sentiment_label|title }} Tone
+        </span>
+
+        <!-- Export Buttons -->
+        <div class="btn-group">
+            <button type="button" class="btn btn-outline-info dropdown-toggle" data-bs-toggle="dropdown">
+                📥 Export
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{% url 'export_meeting_pdf' meeting.pk %}">📄 PDF Report</a></li>
+                <li><a class="dropdown-item" href="{% url 'export_meeting_excel' meeting.pk %}">📊 Excel Data</a></li>
+            </ul>
+        </div>
+        
+        <!-- DELETE BUTTON -->
+        <a href="{% url 'delete_meeting' meeting.pk %}" 
+           class="btn btn-sm"
+           style="background: rgba(248, 113, 113, 0.2); color: #fca5a5; border: 1px solid rgba(248, 113, 113, 0.4);">
+            ❌ Delete
+        </a>
+    </div>
+</div>
+
+    <div>
+        <span class="sentiment-badge sentiment-{{ meeting.sentiment_label }}">
+            {% if meeting.sentiment_label == 'positive' %}😊{% elif meeting.sentiment_label == 'negative' %}😟{% else %}😐{% endif %}
+            {{ meeting.sentiment_label|title }} Tone
+        </span>
+    </div>
+</div>
+
+<!-- Key Metrics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="metric-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <h3>{{ meeting.total_messages }}</h3>
+            <p>Total Messages</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <h3>{{ meeting.total_words|floatformat:0 }}</h3>
+            <p>Total Words</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <h3>{{ meeting.avg_sentiment|floatformat:2 }}</h3>
+            <p>Avg Sentiment</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+            <h3>{{ meeting.participation_balance|floatformat:2 }}</h3>
+            <p>Balance Score</p>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="chart-container">
+            <h5 class="mb-3">📊 Participation Distribution</h5>
+            <canvas id="participationChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="chart-container">
+            <h5 class="mb-3">🎯 Engagement Scores</h5>
+            <canvas id="engagementChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="chart-container">
+            <h5 class="mb-3">💭 Sentiment by Speaker</h5>
+            <canvas id="sentimentChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Metrics Table -->
+<div class="card mt-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">📋 Detailed Speaker Metrics</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Speaker</th>
+                        <th>Messages</th>
+                        <th>Words</th>
+                        <th>Participation %</th>
+                        <th>Engagement</th>
+                        <th>Avg Sentiment</th>
+                        <th>Questions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for metric in metrics %}
+                    <tr>
+                        <td><strong>{{ metric.speaker.name }}</strong></td>
+                        <td>{{ metric.total_messages }}</td>
+                        <td>{{ metric.total_words }}</td>
+                        <td>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar bg-primary" role="progressbar" 
+                                     style="width: {{ metric.participation_percentage }}%">
+                                    {{ metric.participation_percentage }}%
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ metric.engagement_score|floatformat:0 }}/100</span>
+                        </td>
+                        <td>
+                            {% if metric.avg_sentiment > 0.05 %}
+                                <span class="badge bg-success">{{ metric.avg_sentiment|floatformat:2 }}</span>
+                            {% elif metric.avg_sentiment < -0.05 %}
+                                <span class="badge bg-danger">{{ metric.avg_sentiment|floatformat:2 }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ metric.avg_sentiment|floatformat:2 }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ metric.question_count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Participation Chart
+    const participationCtx = document.getElementById('participationChart').getContext('2d');
+    new Chart(participationCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ participation_data.labels|safe }},
+            datasets: [{
+                label: 'Participation %',
+                data: {{ participation_data.data|safe }},
+                backgroundColor: 'rgba(79, 70, 229, 0.8)',
+                borderColor: 'rgba(79, 70, 229, 1)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+    
+    // Engagement Chart
+    const engagementCtx = document.getElementById('engagementChart').getContext('2d');
+    new Chart(engagementCtx, {
+        type: 'radar',
+        data: {
+            labels: {{ engagement_data.labels|safe }},
+            datasets: [{
+                label: 'Engagement Score',
+                data: {{ engagement_data.data|safe }},
+                backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                borderColor: 'rgba(245, 158, 11, 1)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+    
+    // Sentiment Chart
+    const sentimentCtx = document.getElementById('sentimentChart').getContext('2d');
+    new Chart(sentimentCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ sentiment_data.labels|safe }},
+            datasets: [{
+                label: 'Average Sentiment',
+                data: {{ sentiment_data.data|safe }},
+                backgroundColor: {{ sentiment_data.data|safe }}.map(val => 
+                    val > 0.05 ? 'rgba(16, 185, 129, 0.8)' : 
+                    val < -0.05 ? 'rgba(239, 68, 68, 0.8)' : 
+                    'rgba(107, 114, 128, 0.8)'
+                ),
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    min: -1,
+                    max: 1
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

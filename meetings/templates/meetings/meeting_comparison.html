@@ -1,0 +1,283 @@
+{% extends 'meetings/base.html' %}
+
+{% block title %}Meeting Comparison - TeamPulse AI{% endblock %}
+
+{% block content %}
+
+<div class="mb-4">
+    <h1 class="page-header mb-2">📊 Meeting Comparison</h1>
+    <p class="text-muted">Compare team dynamics across multiple meetings</p>
+</div>
+
+<!-- Meeting Selection -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Select Meetings to Compare</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" action="{% url 'meeting_comparison' %}" id="comparisonForm">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label">Meeting 1</label>
+                    <select name="meeting1" class="form-select" required>
+                        <option value="">Select first meeting...</option>
+                        {% for meeting in all_meetings %}
+                        <option value="{{ meeting.id }}" {% if meeting.id == meeting1_id %}selected{% endif %}>
+                            {{ meeting.title }} - {{ meeting.date|date:"M j, Y" }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Meeting 2</label>
+                    <select name="meeting2" class="form-select" required>
+                        <option value="">Select second meeting...</option>
+                        {% for meeting in all_meetings %}
+                        <option value="{{ meeting.id }}" {% if meeting.id == meeting2_id %}selected{% endif %}>
+                            {{ meeting.title }} - {{ meeting.date|date:"M j, Y" }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Compare</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if meeting1 and meeting2 %}
+
+<!-- Comparison Results -->
+<div class="alert alert-info mb-4">
+    <strong>💡 AI Analysis:</strong> {{ comparison_summary }}
+</div>
+
+<!-- High-Level Metrics Comparison -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary">
+                <h5 class="mb-0 text-white">{{ meeting1.title }}</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">{{ meeting1.date|date:"F j, Y • g:i A" }}</p>
+                
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="text-center p-3" style="background: rgba(129, 140, 248, 0.1); border-radius: 8px;">
+                            <h3 class="mb-1" style="color: var(--text-primary);">{{ meeting1.avg_sentiment|floatformat:2 }}</h3>
+                            <small class="text-muted">Sentiment</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center p-3" style="background: rgba(129, 140, 248, 0.1); border-radius: 8px;">
+                            <h3 class="mb-1" style="color: var(--text-primary);">{{ meeting1.participation_balance|floatformat:2 }}</h3>
+                            <small class="text-muted">Balance</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center p-3" style="background: rgba(129, 140, 248, 0.1); border-radius: 8px;">
+                            <h3 class="mb-1" style="color: var(--text-primary);">{{ meeting1.total_messages }}</h3>
+                            <small class="text-muted">Messages</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center p-3" style="background: rgba(129, 140, 248, 0.1); border-radius: 8px;">
+                            <h3 class="mb-1" style="color: var(--text-primary);">{{ meeting1.total_words }}</h3>
+                            <small class="text-muted">Words</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info">
+                <h5 class="mb-0 text-white">{{ meeting2.title }}</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">{{ meeting2.date|date:"F j, Y • g:i A" }}</p>
+                
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="text-center p-3" style="background: rgba(96, 165, 250, 0.1); border-radius: 8px;">
+                            <h3 class="mb-1" style="color: var(--text-primary);">{{ meeting2.avg_sentiment|floatformat:2 }}</h3>
+                            <small class="text-muted">Sentiment</small>
+                            {% if sentiment_change != 0 %}
+                            <div class="mt-2">
+                                <span class="badge bg-{% if sentiment_change > 0 %}success{% else %}danger{% endif %}">
+                                    {% if sentiment_change > 0 %}+{% endif %}{{ sentiment_change|floatformat:2 }}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center p-3" style="background: rgba(96, 165, 250, 0.1); border-radius: 8px;">
+                            <h3 class="mb-1" style="color: var(--text-primary);">{{ meeting2.participation_balance|floatformat:2 }}</h3>
+                            <small class="text-muted">Balance</small>
+                            {% if balance_change != 0 %}
+                            <div class="mt-2">
+                                <span class="badge bg-{% if balance_change > 0 %}success{% else %}danger{% endif %}">
+                                    {% if balance_change > 0 %}+{% endif %}{{ balance_change|floatformat:2 }}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center p-3" style="background: rgba(96, 165, 250, 0.1); border-radius: 8px;">
+                            <h3 class="mb-1" style="color: var(--text-primary);">{{ meeting2.total_messages }}</h3>
+                            <small class="text-muted">Messages</small>
+                            {% if message_change != 0 %}
+                            <div class="mt-2">
+                                <span class="badge bg-{% if message_change > 0 %}info{% else %}warning{% endif %}">
+                                    {% if message_change > 0 %}+{% endif %}{{ message_change }}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center p-3" style="background: rgba(96, 165, 250, 0.1); border-radius: 8px;">
+                            <h3 class="mb-1" style="color: var(--text-primary);">{{ meeting2.total_words }}</h3>
+                            <small class="text-muted">Words</small>
+                            {% if word_change != 0 %}
+                            <div class="mt-2">
+                                <span class="badge bg-{% if word_change > 0 %}info{% else %}warning{% endif %}">
+                                    {% if word_change > 0 %}+{% endif %}{{ word_change }}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Speaker-Level Comparison -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">👥 Speaker Participation Comparison</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Speaker</th>
+                        <th>{{ meeting1.title|truncatewords:3 }}</th>
+                        <th>{{ meeting2.title|truncatewords:3 }}</th>
+                        <th>Change</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for speaker_name, data in speaker_comparison.items %}
+                    <tr>
+                        <td><strong>{{ speaker_name }}</strong></td>
+                        <td>
+                            {% if data.meeting1 %}
+                                <div>{{ data.meeting1.participation_percentage|floatformat:1 }}% participation</div>
+                                <small class="text-muted">{{ data.meeting1.total_words }} words</small>
+                            {% else %}
+                                <span class="text-muted">Not present</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if data.meeting2 %}
+                                <div>{{ data.meeting2.participation_percentage|floatformat:1 }}% participation</div>
+                                <small class="text-muted">{{ data.meeting2.total_words }} words</small>
+                            {% else %}
+                                <span class="text-muted">Not present</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if data.change != None %}
+                                <span class="badge bg-{% if data.change > 5 %}success{% elif data.change < -5 %}danger{% else %}secondary{% endif %}">
+                                    {% if data.change > 0 %}↗️ +{% elif data.change < 0 %}↘️ {% else %}→ {% endif %}{{ data.change|floatformat:1 }}%
+                                </span>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Sentiment Distribution Comparison -->
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="chart-container">
+            <h5 class="mb-3">{{ meeting1.title|truncatewords:4 }} - Sentiment</h5>
+            <canvas id="sentiment1Chart"></canvas>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="chart-container">
+            <h5 class="mb-3">{{ meeting2.title|truncatewords:4 }} - Sentiment</h5>
+            <canvas id="sentiment2Chart"></canvas>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+{% if meeting1 and meeting2 %}
+<script>
+    // Sentiment Chart 1
+    const sentiment1Data = {{ meeting1_sentiment_data|safe }};
+    new Chart(document.getElementById('sentiment1Chart'), {
+        type: 'pie',
+        data: {
+            labels: ['Positive', 'Neutral', 'Negative'],
+            datasets: [{
+                data: [sentiment1Data.positive, sentiment1Data.neutral, sentiment1Data.negative],
+                backgroundColor: ['#34d399', '#60a5fa', '#f87171']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    labels: { color: '#d1d5db' }
+                }
+            }
+        }
+    });
+
+    // Sentiment Chart 2
+    const sentiment2Data = {{ meeting2_sentiment_data|safe }};
+    new Chart(document.getElementById('sentiment2Chart'), {
+        type: 'pie',
+        data: {
+            labels: ['Positive', 'Neutral', 'Negative'],
+            datasets: [{
+                data: [sentiment2Data.positive, sentiment2Data.neutral, sentiment2Data.negative],
+                backgroundColor: ['#34d399', '#60a5fa', '#f87171']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    labels: { color: '#d1d5db' }
+                }
+            }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

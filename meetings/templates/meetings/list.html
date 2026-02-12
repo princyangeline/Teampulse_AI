@@ -1,0 +1,78 @@
+{% extends 'meetings/base.html' %}
+
+{% block title %}All Meetings{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-header mb-0">Meeting History</h1>
+    <div class="text-muted">
+        <small>{{ meetings.count }} meeting{{ meetings.count|pluralize }}</small>
+    </div>
+</div>
+
+{% if meetings %}
+    <div class="row g-4">
+        {% for meeting in meetings %}
+        <div class="col-lg-6 col-md-12">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="card-title mb-0 fw-bold" style="color: var(--text-primary);">{{ meeting.title }}</h5>
+                        <div class="d-flex gap-2 align-items-center">
+                            <span class="badge bg-secondary">{{ meeting.total_messages }} msgs</span>
+                            <!-- DELETE BUTTON -->
+                            <a href="{% url 'delete_meeting' meeting.pk %}" 
+                               class="btn btn-sm" 
+                               style="background: rgba(248, 113, 113, 0.2); color: #fca5a5; border: 1px solid rgba(248, 113, 113, 0.4); padding: 4px 10px;"
+                               title="Delete meeting">
+                                ❌
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <p class="text-muted mb-3">
+                        <small>📅 {{ meeting.date|date:"M j, Y • g:i A" }}</small>
+                    </p>
+                    
+                    <div class="d-flex gap-2 mb-3 flex-wrap">
+                        <span class="sentiment-badge sentiment-{{ meeting.sentiment_label }}">
+                            {% if meeting.sentiment_label == 'positive' %}😊{% elif meeting.sentiment_label == 'negative' %}😟{% else %}😐{% endif %}
+                            {{ meeting.sentiment_label }}
+                        </span>
+                        <span class="badge" style="background: rgba(100, 116, 139, 0.2); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3);">
+                            {{ meeting.total_words }} words
+                        </span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted fw-semibold">Participation Balance</small>
+                            <small class="text-muted">{{ meeting.participation_balance|floatformat:2 }}</small>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar" role="progressbar" style="width: {% widthratio meeting.participation_balance 1 100 %}%;" aria-valuenow="{{ meeting.participation_balance }}" aria-valuemin="0" aria-valuemax="1">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'meeting_dashboard' meeting.pk %}" class="btn btn-primary btn-sm flex-grow-1">
+                            View Analytics →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <div style="font-size: 4rem; margin-bottom: 20px;">📊</div>
+        <h4 style="color: var(--text-primary); margin-bottom: 15px;">No meetings yet</h4>
+        <p class="text-muted mb-4">Upload your first transcript to start analyzing team dynamics</p>
+        <a href="{% url 'upload_transcript' %}" class="btn btn-primary btn-lg">
+            Upload First Meeting →
+        </a>
+    </div>
+{% endif %}
+{% endblock %}

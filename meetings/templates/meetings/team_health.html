@@ -1,0 +1,204 @@
+{% extends 'meetings/base.html' %}
+
+{% block title %}Team Health Index - TeamPulse AI{% endblock %}
+
+{% block content %}
+<h1 class="page-header">🏥 Team Health Index</h1>
+<p class="text-muted mb-4">Comprehensive health analysis based on recent {{ recent_meetings|length }} meetings</p>
+
+<!-- Overall Health Score -->
+<div class="row mb-5">
+    <div class="col-md-12">
+        <div class="card border-{{ health_index.color }} shadow-lg">
+            <div class="card-body text-center p-5">
+                <h1 class="display-1 mb-3">{{ health_index.icon }}</h1>
+                <h2 class="mb-3">Team Health Score</h2>
+                <h1 class="display-2 mb-3">
+                    <span class="text-{{ health_index.color }}">{{ health_index.score }}/100</span>
+                </h1>
+                <h3>
+                    <span class="badge bg-{{ health_index.color }} fs-4">{{ health_index.level|upper }}</span>
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Health Components Breakdown -->
+<h2 class="mb-4">📊 Health Components</h2>
+
+<div class="row mb-4">
+    <!-- Sentiment Component -->
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">💭 Sentiment Health</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="mb-0">{{ health_index.components.sentiment.score }}/100</h2>
+                    <span class="badge bg-secondary">{{ health_index.components.sentiment.trend }}</span>
+                </div>
+                <div class="progress" style="height: 25px;">
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ health_index.components.sentiment.score }}%;">
+                        {{ health_index.components.sentiment.score|floatformat:0 }}%
+                    </div>
+                </div>
+                <p class="mt-3 mb-0">
+                    <small>Current Sentiment: {{ health_index.components.sentiment.current|floatformat:2 }}</small>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Participation Component -->
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">🎯 Participation Health</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="mb-0">{{ health_index.components.participation.score }}/100</h2>
+                    <span class="badge bg-secondary">{{ health_index.components.participation.trend }}</span>
+                </div>
+                <div class="progress" style="height: 25px;">
+                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ health_index.components.participation.score }}%;">
+                        {{ health_index.components.participation.score|floatformat:0 }}%
+                    </div>
+                </div>
+                <p class="mt-3 mb-0">
+                    <small>Current Balance: {{ health_index.components.participation.current|floatformat:2 }}</small>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Engagement Component -->
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">⚡ Engagement Health</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="mb-0">{{ health_index.components.engagement.score }}/100</h2>
+                    <span class="badge bg-secondary">{{ health_index.components.engagement.trend }}</span>
+                </div>
+                <div class="progress" style="height: 25px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ health_index.components.engagement.score }}%;">
+                        {{ health_index.components.engagement.score|floatformat:0 }}%
+                    </div>
+                </div>
+                <p class="mt-3 mb-0">
+                    <small>Current Level: {{ health_index.components.engagement.current|floatformat:1 }}</small>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Volume Component -->
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">💬 Communication Health</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="mb-0">{{ health_index.components.volume.score }}/100</h2>
+                    <span class="badge bg-secondary">{{ health_index.components.volume.trend }}</span>
+                </div>
+                <div class="progress" style="height: 25px;">
+                    <div class="progress-bar bg-warning" role="progressbar" style="width: {{ health_index.components.volume.score }}%;">
+                        {{ health_index.components.volume.score|floatformat:0 }}%
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Risk Summary -->
+<h2 class="mb-4">⚠️ Risk Summary</h2>
+
+<div class="card mb-4">
+    <div class="card-header bg-{{ risk_analysis.overall_risk_score.color }}">
+        <h5 class="mb-0 text-white">Overall Risk Level: {{ risk_analysis.overall_risk_score.level|upper }}</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3 text-center">
+                <h6>Conflict Risk</h6>
+                <h2><span class="badge bg-{{ risk_analysis.conflict_risk.risk_level|default:'secondary' }}">
+                    {{ risk_analysis.conflict_risk.risk_score }}
+                </span></h2>
+            </div>
+            <div class="col-md-3 text-center">
+                <h6>Burnout Risk</h6>
+                <h2><span class="badge bg-{{ risk_analysis.burnout_risk.risk_level|default:'secondary' }}">
+                    {{ risk_analysis.burnout_risk.risk_score }}
+                </span></h2>
+            </div>
+            <div class="col-md-3 text-center">
+                <h6>Dominance Issues</h6>
+                <h2><span class="badge bg-{{ risk_analysis.dominance_issues.risk_level|default:'secondary' }}">
+                    {{ risk_analysis.dominance_issues.risk_score }}
+                </span></h2>
+            </div>
+            <div class="col-md-3 text-center">
+                <h6>Overall Score</h6>
+                <h2><span class="badge bg-{{ risk_analysis.overall_risk_score.color }}">
+                    {{ risk_analysis.overall_risk_score.score }}
+                </span></h2>
+            </div>
+        </div>
+        
+        <hr>
+        
+        <div class="mt-3">
+            <a href="{% url 'trends_dashboard' %}" class="btn btn-primary">
+                View Detailed Risk Analysis →
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Meetings Summary -->
+<h2 class="mb-4">📅 Recent Meetings</h2>
+
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Meeting</th>
+                <th>Date</th>
+                <th>Sentiment</th>
+                <th>Balance</th>
+                <th>Messages</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for meeting in recent_meetings %}
+            <tr>
+                <td><strong>{{ meeting.title }}</strong></td>
+                <td>{{ meeting.date|date:"M j, Y" }}</td>
+                <td>
+                    <span class="sentiment-badge sentiment-{{ meeting.sentiment_label }}">
+                        {{ meeting.avg_sentiment|floatformat:2 }}
+                    </span>
+                </td>
+                <td>{{ meeting.participation_balance|floatformat:2 }}</td>
+                <td>{{ meeting.total_messages }}</td>
+                <td>
+                    <a href="{% url 'meeting_dashboard' meeting.pk %}" class="btn btn-sm btn-outline-primary">
+                        View
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends 'meetings/base.html' %}
+
+{% block title %}Risk Analysis - TeamPulse AI{% endblock %}
+
+{% block content %}
+
+<div class="mb-4">
+    <h1 class="page-header mb-2">⚠️ Risk Analysis & Filtering</h1>
+    <p class="text-muted">Filter and prioritize team collaboration risks</p>
+</div>
+
+<!-- Filter Controls -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">🔍 Filter Risks</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" action="{% url 'risk_filter' %}" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Severity Level</label>
+                <select name="severity" class="form-select">
+                    <option value="">All Risks</option>
+                    <option value="high" {% if selected_severity == 'high' %}selected{% endif %}>High Only</option>
+                    <option value="medium" {% if selected_severity == 'medium' %}selected{% endif %}>Medium Only</option>
+                    <option value="low" {% if selected_severity == 'low' %}selected{% endif %}>Low Only</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Risk Type</label>
+                <select name="risk_type" class="form-select">
+                    <option value="">All Types</option>
+                    <option value="conflict" {% if selected_type == 'conflict' %}selected{% endif %}>Conflict</option>
+                    <option value="burnout" {% if selected_type == 'burnout' %}selected{% endif %}>Burnout</option>
+                    <option value="dominance" {% if selected_type == 'dominance' %}selected{% endif %}>Dominance</option>
+                    <option value="disengagement" {% if selected_type == 'disengagement' %}selected{% endif %}>Disengagement</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Meeting Range</label>
+                <select name="range" class="form-select">
+                    <option value="5" {% if selected_range == '5' %}selected{% endif %}>Last 5 meetings</option>
+                    <option value="10" {% if selected_range == '10' %}selected{% endif %}>Last 10 meetings</option>
+                    <option value="all" {% if selected_range == 'all' %}selected{% endif %}>All meetings</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Risk Summary Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center" style="border-left: 4px solid #f87171;">
+            <div class="card-body">
+                <h2 class="mb-2" style="color: #f87171;">{{ high_risk_count }}</h2>
+                <p class="mb-0 text-muted">High Risk Issues</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center" style="border-left: 4px solid #fbbf24;">
+            <div class="card-body">
+                <h2 class="mb-2" style="color: #fbbf24;">{{ medium_risk_count }}</h2>
+                <p class="mb-0 text-muted">Medium Risk Issues</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center" style="border-left: 4px solid #60a5fa;">
+            <div class="card-body">
+                <h2 class="mb-2" style="color: #60a5fa;">{{ low_risk_count }}</h2>
+                <p class="mb-0 text-muted">Low Risk Issues</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center" style="border-left: 4px solid #34d399;">
+            <div class="card-body">
+                <h2 class="mb-2" style="color: #34d399;">{{ total_meetings }}</h2>
+                <p class="mb-0 text-muted">Meetings Analyzed</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtered Risks -->
+{% if filtered_risks %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">📋 Detected Risks ({{ filtered_risks|length }})</h5>
+    </div>
+    <div class="card-body">
+        {% for risk in filtered_risks %}
+        <div class="card mb-3" style="border-left: 4px solid {% if risk.level == 'high' %}#f87171{% elif risk.level == 'medium' %}#fbbf24{% else %}#60a5fa{% endif %};">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h5 class="mb-0" style="color: var(--text-primary);">{{ risk.type }}</h5>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-{{ risk.level }}">{{ risk.level|upper }}</span>
+                        <span class="badge bg-secondary">Score: {{ risk.score }}</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <strong class="text-primary">What's Happening:</strong>
+                    <p class="mb-0 text-secondary">{{ risk.explanation }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <strong class="text-warning">Potential Impact:</strong>
+                    <p class="mb-0 text-secondary">{{ risk.impact }}</p>
+                </div>
+                
+                <div class="alert alert-info mb-0" style="background: rgba(96, 165, 250, 0.1); border-color: rgba(96, 165, 250, 0.3);">
+                    <strong>💡 Recommended Action:</strong> {{ risk.recommendation }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <div style="font-size: 4rem; margin-bottom: 20px;">✅</div>
+        <h4 style="color: var(--text-primary);">No risks match your filters</h4>
+        <p class="text-muted">Try adjusting your filter criteria or the team is doing great!</p>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

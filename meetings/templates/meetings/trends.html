@@ -1,0 +1,377 @@
+
+{% extends 'meetings/base.html' %}
+
+{% block title %}Trend Analysis - TeamPulse AI{% endblock %}
+
+{% block content %}
+<h1 class="page-header">📈 Team Trend Analysis</h1>
+<p class="text-muted mb-4">Analyzing patterns across {{ trends.meeting_count }} meetings</p>
+
+<!-- Overall Risk Alert -->
+{% if risks.overall_risk_score.level == 'critical' or risks.overall_risk_score.level == 'high' %}
+<div class="alert alert-{{ risks.overall_risk_score.color }} alert-dismissible fade show" role="alert">
+    <h5 class="alert-heading">⚠️ Team Health Alert</h5>
+    <p><strong>Overall Risk Level:</strong> {{ risks.overall_risk_score.level|upper }} (Score: {{ risks.overall_risk_score.score }}/100)</p>
+    <hr>
+    <p class="mb-0">Multiple risk indicators detected. Review detailed analysis below.</p>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<!-- Trend Cards -->
+<div class="row mb-4">
+    <!-- Sentiment Trend -->
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">💭 Sentiment Trend</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h3 class="mb-0">
+                            {% if trends.sentiment.trend == 'improving' %}
+                                <span class="text-success">↗️ Improving</span>
+                            {% elif trends.sentiment.trend == 'declining' %}
+                                <span class="text-danger">↘️ Declining</span>
+                            {% else %}
+                                <span class="text-secondary">→ Stable</span>
+                            {% endif %}
+                        </h3>
+                        <small class="text-muted">{{ trends.sentiment.change_percentage }}% change</small>
+                    </div>
+                    <div class="text-end">
+                        <p class="mb-0"><strong>Current:</strong> {{ trends.sentiment.current_avg|floatformat:2 }}</p>
+                        <p class="mb-0"><small>Previous: {{ trends.sentiment.previous_avg|floatformat:2 }}</small></p>
+                    </div>
+                </div>
+                <canvas id="sentimentTrendChart" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Participation Trend -->
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">🎯 Participation Balance</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h3 class="mb-0">
+                            {% if trends.participation.trend == 'improving' %}
+                                <span class="text-success">↗️ Improving</span>
+                            {% elif trends.participation.trend == 'declining' %}
+                                <span class="text-danger">↘️ Declining</span>
+                            {% else %}
+                                <span class="text-secondary">→ Stable</span>
+                            {% endif %}
+                        </h3>
+                        <small class="text-muted">{{ trends.participation.change_percentage }}% change</small>
+                    </div>
+                    <div class="text-end">
+                        <p class="mb-0"><strong>Current:</strong> {{ trends.participation.current_balance|floatformat:2 }}</p>
+                        <p class="mb-0"><small>Previous: {{ trends.participation.previous_balance|floatformat:2 }}</small></p>
+                    </div>
+                </div>
+                <canvas id="participationTrendChart" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Engagement Trend -->
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">⚡ Team Engagement</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h3 class="mb-0">
+                            {% if trends.engagement.trend == 'improving' %}
+                                <span class="text-success">↗️ Improving</span>
+                            {% elif trends.engagement.trend == 'declining' %}
+                                <span class="text-danger">↘️ Declining</span>
+                            {% else %}
+                                <span class="text-secondary">→ Stable</span>
+                            {% endif %}
+                        </h3>
+                        <small class="text-muted">{{ trends.engagement.change_percentage }}% change</small>
+                    </div>
+                    <div class="text-end">
+                        <p class="mb-0"><strong>Current:</strong> {{ trends.engagement.current_avg|floatformat:1 }}/100</p>
+                        <p class="mb-0"><small>Previous: {{ trends.engagement.previous_avg|floatformat:1 }}</small></p>
+                    </div>
+                </div>
+                <canvas id="engagementTrendChart" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Volume Trend -->
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">💬 Communication Volume</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h3 class="mb-0">
+                            {% if trends.message_volume.trend == 'increasing' %}
+                                <span class="text-primary">↗️ Increasing</span>
+                            {% elif trends.message_volume.trend == 'decreasing' %}
+                                <span class="text-danger">↘️ Decreasing</span>
+                            {% else %}
+                                <span class="text-secondary">→ Stable</span>
+                            {% endif %}
+                        </h3>
+                        <small class="text-muted">{{ trends.message_volume.change_percentage }}% change</small>
+                    </div>
+                    <div class="text-end">
+                        <p class="mb-0"><strong>Current Avg:</strong> {{ trends.message_volume.current_avg|floatformat:0 }}</p>
+                        <p class="mb-0"><small>Previous: {{ trends.message_volume.previous_avg|floatformat:0 }}</small></p>
+                    </div>
+                </div>
+                <canvas id="volumeTrendChart" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Risk Analysis Section -->
+<h2 class="mt-5 mb-4">⚠️ Risk Analysis</h2>
+
+<div class="row">
+    <!-- Conflict Risk -->
+    <div class="col-md-6 mb-3">
+        <div class="card border-{{ risks.conflict_risk.risk_level|default:'secondary' }}">
+            <div class="card-header bg-{{ risks.conflict_risk.risk_level|default:'secondary' }} text-white">
+                <h5 class="mb-0">🔥 Conflict Risk</h5>
+            </div>
+            <div class="card-body">
+                <h3>Risk Level: <span class="badge bg-{{ risks.conflict_risk.risk_level|default:'secondary' }}">{{ risks.conflict_risk.risk_level|upper }}</span></h3>
+                <p><strong>Risk Score:</strong> {{ risks.conflict_risk.risk_score }}/100</p>
+                
+                {% if risks.conflict_risk.indicators %}
+                <div class="alert alert-light">
+                    <strong>Indicators Detected:</strong>
+                    <ul class="mb-0 mt-2">
+                        {% for indicator in risks.conflict_risk.indicators %}
+                        <li>{{ indicator }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <div class="alert alert-info mt-3">
+                    <strong>💡 Recommendation:</strong><br>
+                    {{ risks.conflict_risk.recommendation }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Burnout Risk -->
+    <div class="col-md-6 mb-3">
+        <div class="card border-{{ risks.burnout_risk.risk_level|default:'secondary' }}">
+            <div class="card-header bg-{{ risks.burnout_risk.risk_level|default:'secondary' }} text-white">
+                <h5 class="mb-0">😓 Burnout Risk</h5>
+            </div>
+            <div class="card-body">
+                <h3>Risk Level: <span class="badge bg-{{ risks.burnout_risk.risk_level|default:'secondary' }}">{{ risks.burnout_risk.risk_level|upper }}</span></h3>
+                <p><strong>Risk Score:</strong> {{ risks.burnout_risk.risk_score }}/100</p>
+                
+                {% if risks.burnout_risk.indicators %}
+                <div class="alert alert-light">
+                    <strong>Indicators Detected:</strong>
+                    <ul class="mb-0 mt-2">
+                        {% for indicator in risks.burnout_risk.indicators %}
+                        <li>{{ indicator }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <div class="alert alert-info mt-3">
+                    <strong>💡 Recommendation:</strong><br>
+                    {{ risks.burnout_risk.recommendation }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dominance Issues -->
+    <div class="col-md-6 mb-3">
+        <div class="card border-{{ risks.dominance_issues.risk_level|default:'secondary' }}">
+            <div class="card-header bg-{{ risks.dominance_issues.risk_level|default:'secondary' }} text-white">
+                <h5 class="mb-0">👥 Dominance Issues</h5>
+            </div>
+            <div class="card-body">
+                <h3>Risk Level: <span class="badge bg-{{ risks.dominance_issues.risk_level|default:'secondary' }}">{{ risks.dominance_issues.risk_level|upper }}</span></h3>
+                <p><strong>Risk Score:</strong> {{ risks.dominance_issues.risk_score }}/100</p>
+                
+                {% if risks.dominance_issues.dominant_speakers %}
+                <div class="alert alert-warning">
+                    <strong>Dominant Speakers:</strong>
+                    <ul class="mb-0 mt-2">
+                        {% for speaker in risks.dominance_issues.dominant_speakers %}
+                        <li>{{ speaker }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                {% if risks.dominance_issues.indicators %}
+                <div class="alert alert-light">
+                    <strong>Indicators:</strong>
+                    <ul class="mb-0 mt-2">
+                        {% for indicator in risks.dominance_issues.indicators %}
+                        <li>{{ indicator }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <div class="alert alert-info mt-3">
+                    <strong>💡 Recommendation:</strong><br>
+                    {{ risks.dominance_issues.recommendation }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Disengagement Risk -->
+    <div class="col-md-6 mb-3">
+        <div class="card border-{{ risks.disengagement_risk.risk_level|default:'secondary' }}">
+            <div class="card-header bg-{{ risks.disengagement_risk.risk_level|default:'secondary' }} text-white">
+                <h5 class="mb-0">😴 Disengagement Risk</h5>
+            </div>
+            <div class="card-body">
+                <h3>Risk Level: <span class="badge bg-{{ risks.disengagement_risk.risk_level|default:'secondary' }}">{{ risks.disengagement_risk.risk_level|upper }}</span></h3>
+                
+                {% if risks.disengagement_risk.at_risk_speakers %}
+                <div class="alert alert-warning">
+                    <strong>At-Risk Team Members:</strong>
+                    <ul class="mb-0 mt-2">
+                        {% for speaker in risks.disengagement_risk.at_risk_speakers %}
+                        <li>
+                            <strong>{{ speaker.name }}</strong>: 
+                            Engagement {{ speaker.current_engagement }}/100 
+                            ({{ speaker.decline_percentage }}% decline)
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <div class="alert alert-info mt-3">
+                    <strong>💡 Recommendation:</strong><br>
+                    {{ risks.disengagement_risk.recommendation }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Prepare data
+    const sentimentData = {{ trends.sentiment.data_points|safe }};
+    const participationData = {{ trends.participation.data_points|safe }};
+    const engagementData = {{ trends.engagement.data_points|safe }};
+    const volumeData = {{ trends.message_volume.data_points|safe }};
+
+    // Sentiment Trend Chart
+    new Chart(document.getElementById('sentimentTrendChart'), {
+        type: 'line',
+        data: {
+            labels: sentimentData.map(d => d.date),
+            datasets: [{
+                label: 'Sentiment',
+                data: sentimentData.map(d => d.sentiment),
+                borderColor: 'rgb(79, 70, 229)',
+                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: false, min: -1, max: 1 }
+            }
+        }
+    });
+
+    // Participation Trend Chart
+    new Chart(document.getElementById('participationTrendChart'), {
+        type: 'line',
+        data: {
+            labels: participationData.map(d => d.date),
+            datasets: [{
+                label: 'Balance Score',
+                data: participationData.map(d => d.balance),
+                borderColor: 'rgb(14, 165, 233)',
+                backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true, max: 1 }
+            }
+        }
+    });
+
+    // Engagement Trend Chart
+    new Chart(document.getElementById('engagementTrendChart'), {
+        type: 'line',
+        data: {
+            labels: engagementData.map(d => d.date),
+            datasets: [{
+                label: 'Engagement',
+                data: engagementData.map(d => d.engagement),
+                borderColor: 'rgb(16, 185, 129)',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true, max: 100 }
+            }
+        }
+    });
+
+    // Volume Trend Chart
+    new Chart(document.getElementById('volumeTrendChart'), {
+        type: 'line',
+        data: {
+            labels: volumeData.map(d => d.date),
+            datasets: [{
+                label: 'Messages',
+                data: volumeData.map(d => d.messages),
+                borderColor: 'rgb(245, 158, 11)',
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+</script>
+{% endblock %}
