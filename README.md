@@ -99,28 +99,18 @@ Teampulse_AI/
 │
 └── .gitignore
 ⚙️ Installation & Setup
-1️⃣ Clone Repository
-git clone https://github.com/yourusername/Teampulse_AI.git
-cd Teampulse_AI
-2️⃣ Create Virtual Environment
+1 Create Virtual Environment
 python -m venv venv
 venv\Scripts\activate
-3️⃣ Install Dependencies
+2 Install Dependencies
 pip install -r requirements.txt
-4️⃣ Configure Environment Variables
-
+3 Configure Environment Variables
 Create a .env file in project root:
-
-EMAIL_HOST_USER=your_email@gmail.com
-EMAIL_HOST_PASSWORD=your_16_digit_app_password
-5️⃣ Run Migrations
+4 Run Migrations
 python manage.py migrate
-6️⃣ Run Server
+5 Run Server
 python manage.py runserver
 
-Visit:
-
-http://127.0.0.1:8000/
 🔐 Security Best Practices Implemented
 
 Environment-based secret management
